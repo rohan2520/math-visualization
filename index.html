@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미분과 적분 - 2sin(x)와 2cos(x)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2a2a2a;
+  }
+
+  .scale-wrapper {
+    width: 1600px;
+    height: 900px;
+    transform-origin: center center;
+    position: absolute;
+  }
+
+  .main-container {
+    display: flex;
+    width: 1600px;
+    height: 900px;
+  }
+
+  /* Left: Graph area */
+  .graph-area {
+    flex: 1;
+    position: relative;
+    background: #a3cca3;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Right: Info panel */
+  .info-panel {
+    width: 320px;
+    min-width: 280px;
+    background: #a3cca3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    position: relative;
+    border-left: 2px solid #8aba8a;
+  }
+
+  .func-top {
+    font-size: 32px;
+    color: #000;
+    margin-bottom: 30px;
+  }
+
+  .derivative-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+
+  .label-mibun {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0000cc;
+  }
+
+  .label-jeokbun {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0000cc;
+  }
+
+  .arrow-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .arrow-left-text {
+    font-size: 16px;
+    color: #000;
+    text-align: center;
+  }
+
+  .arrow-right-text {
+    font-size: 16px;
+    color: #000;
+    text-align: center;
+  }
+
+  .vertical-arrows {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    height: 80px;
+  }
+
+  .arrow-down-icon, .arrow-up-icon {
+    font-size: 40px;
+    color: #0000cc;
+    line-height: 1;
+  }
+
+  .func-bottom {
+    font-size: 32px;
+    color: #000;
+    margin-top: 30px;
+  }
+
+  .slider-instruction {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #b4a0d8;
+    color: #000;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px 24px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Slider bar at bottom of graph */
+  .slider-container {
+    position: absolute;
+    bottom: 70px;
+    left: 40px;
+    right: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .slider-track {
+    position: relative;
+    width: 100%;
+    height: 14px;
+    background: rgba(150,150,150,0.6);
+    border-radius: 7px;
+    cursor: pointer;
+  }
+
+  .slider-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: #111;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 2;
+    border: 2px solid #333;
+  }
+
+  .slider-thumb:active {
+    cursor: grabbing;
+  }
+
+  /* x label below slider */
+  .x-label {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    color: #000;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* Overlay labels on graph */
+  .graph-label {
+    position: absolute;
+    pointer-events: none;
+    font-size: 16px;
+    white-space: nowrap;
+  }
+
+  .label-2sinx {
+    top: 12px;
+    left: 12px;
+    color: #7755aa;
+    font-size: 18px;
+  }
+
+  .label-2cosx {
+    color: #2244aa;
+    font-size: 18px;
+  }
+
+  .slope-label {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(220, 220, 240, 0.85);
+    padding: 2px 8px;
+    font-size: 16px;
+    color: #000;
+    border: 1px solid #aaa;
+    white-space: nowrap;
+  }
+
+  .funcval-label {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(220, 220, 240, 0.85);
+    padding: 2px 8px;
+    font-size: 16px;
+    color: #000;
+    border: 1px solid #aaa;
+    white-space: nowrap;
+  }
+
+  /* Fullscreen button */
+  .fullscreen-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 16px;
+    z-index: 20;
+  }
+
+  .fullscreen-btn:hover {
+    background: rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body>
+
+<div class="scale-wrapper" id="scaleWrapper">
+<div class="main-container">
+  <!-- Left: Graph -->
+  <div class="graph-area" id="graphArea">
+    <canvas id="graphCanvas"></canvas>
+    
+    <!-- Graph curve labels -->
+    <div class="graph-label label-2sinx" id="labelSin"></div>
+    <div class="graph-label label-2cosx" id="labelCos"></div>
+    
+    <!-- Slope label -->
+    <div class="slope-label" id="slopeLabel"></div>
+    
+    <!-- Function value label -->
+    <div class="funcval-label" id="funcvalLabel"></div>
+    
+    <!-- Slider -->
+    <div class="slider-container" id="sliderContainer">
+      <div class="slider-track" id="sliderTrack">
+        <div class="slider-thumb" id="sliderThumb"></div>
+      </div>
+    </div>
+    
+    <!-- x label -->
+    <div class="x-label" id="xValueLabel"></div>
+  </div>
+  
+  <!-- Right: Info panel -->
+  <div class="info-panel">
+    <div class="func-top" id="funcTop"></div>
+    
+    <div style="display:flex; align-items:flex-start; justify-content:center; gap:0; width:100%; position:relative;">
+      <!-- Left column: 미분 -->
+      <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+        <div class="label-mibun">미분</div>
+        <div style="margin-top:10px; font-size:16px; color:#000;">기울기→함숫값</div>
+      </div>
+      
+      <!-- Center: vertical arrows -->
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 0 8px;">
+        <svg width="24" height="100" viewBox="0 0 24 100">
+          <!-- Down arrow (left side) -->
+          <line x1="8" y1="5" x2="8" y2="90" stroke="#3344cc" stroke-width="2.5"/>
+          <polygon points="8,98 2,85 14,85" fill="#3344cc"/>
+          <!-- Up arrow (right side) -->
+          <line x1="16" y1="95" x2="16" y2="10" stroke="#3344cc" stroke-width="2.5"/>
+          <polygon points="16,2 10,15 22,15" fill="#3344cc"/>
+        </svg>
+      </div>
+      
+      <!-- Right column: 적분 -->
+      <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+        <div class="label-jeokbun">적분</div>
+        <div style="margin-top:10px; font-size:16px; color:#000;">함숫값→기울기</div>
+      </div>
+    </div>
+    
+    <div class="func-bottom" id="funcBottom"></div>
+    
+    <div class="slider-instruction">←왼쪽 슬라이더를 움직이세요</div>
+  </div>
+</div>
+
+<!-- Fullscreen button -->
+<button class="fullscreen-btn" id="fullscreenBtn" title="전체 화면">⛶</button>
+</div>
+
+<script>
+// ========== CONFIG ==========
+const PI = Math.PI;
+const STEP = PI / 4; // π/4 interval
+const X_MIN_RANGE = -4 * PI;
+const X_MAX_RANGE = 4 * PI;
+const GRID_STEP = PI / 2;
+
+// Current slider position (in steps of π/4)
+// Valid steps: multiples of π/4, from X_MIN_RANGE to X_MAX_RANGE
+let currentStep = 1; // start at π/4
+const minStep = Math.round(X_MIN_RANGE / STEP);
+const maxStep = Math.round(X_MAX_RANGE / STEP);
+
+// Canvas
+const canvas = document.getElementById('graphCanvas');
+const ctx = canvas.getContext('2d');
+const graphArea = document.getElementById('graphArea');
+
+// Elements
+const sliderThumb = document.getElementById('sliderThumb');
+const sliderTrack = document.getElementById('sliderTrack');
+const sliderContainer = document.getElementById('sliderContainer');
+const slopeLabel = document.getElementById('slopeLabel');
+const funcvalLabel = document.getElementById('funcvalLabel');
+const xValueLabel = document.getElementById('xValueLabel');
+
+// ========== MATH HELPERS ==========
+function f_sin(x) { return 2 * Math.sin(x); }
+function f_cos(x) { return 2 * Math.cos(x); }
+
+// Nice display for known values at multiples of π/4
+function niceValue(val) {
+  const absVal = Math.abs(val);
+  const sign = val < 0 ? '-' : '';
+  
+  if (Math.abs(absVal) < 1e-10) return '0';
+  if (Math.abs(absVal - 1) < 1e-10) return sign + '1';
+  if (Math.abs(absVal - 2) < 1e-10) return sign + '2';
+  if (Math.abs(absVal - Math.sqrt(2)) < 1e-10) return sign + '\\sqrt{2}';
+  if (Math.abs(absVal - Math.SQRT2) < 1e-10) return sign + '\\sqrt{2}';
+  
+  return val.toFixed(2);
+}
+
+function niceXLabel(step) {
+  const val = step; // step is the multiplier of π/4
+  if (val === 0) return '0';
+  
+  let num = val;
+  let den = 4;
+  // Simplify fraction
+  const g = gcd(Math.abs(num), den);
+  num = num / g;
+  den = den / g;
+  
+  const sign = num < 0 ? '-' : '';
+  const absNum = Math.abs(num);
+  
+  if (den === 1) {
+    if (absNum === 1) return sign + '\\pi';
+    return sign + absNum + '\\pi';
+  }
+  
+  if (absNum === 1) return sign + '\\dfrac{\\pi}{' + den + '}';
+  return sign + '\\dfrac{' + absNum + '\\pi}{' + den + '}';
+}
+
+function gcd(a, b) {
+  while (b) { [a, b] = [b, a % b]; }
+  return a;
+}
+
+// ========== COORDINATE SYSTEM ==========
+let graphW, graphH;
+let originX, originY_sin, originY_cos;
+let scaleX, scaleY;
+
+// The graph has two "tracks":
+// Top track: 2sin(x), center line at ~30% from top
+// Bottom track: 2cos(x), center line at ~70% from top
+// But looking at the image more carefully, 2sin(x) is in the upper portion and 2cos(x) in the lower
+
+function updateDimensions() {
+  // Use offsetWidth/Height (layout size before CSS transform) instead of
+  // getBoundingClientRect (which returns scaled size)
+  graphW = graphArea.offsetWidth;
+  graphH = graphArea.offsetHeight;
+  
+  canvas.width = graphW * window.devicePixelRatio;
+  canvas.height = graphH * window.devicePixelRatio;
+  canvas.style.width = graphW + 'px';
+  canvas.style.height = graphH + 'px';
+  ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+  
+  // Graph layout: leave some margin for slider at bottom
+  const sliderAreaHeight = 100;
+  const usableH = graphH - sliderAreaHeight;
+  
+  // X range mapping
+  const margin = 50;
+  scaleX = (graphW - margin * 2) / (X_MAX_RANGE - X_MIN_RANGE);
+  originX = margin - X_MIN_RANGE * scaleX;
+  
+  // Enforce 1:1 aspect ratio so geometric slopes are visually accurate
+  scaleY = scaleX;
+  
+  // Two track centers
+  originY_sin = usableH * 0.30; // center of sin track
+  originY_cos = usableH * 0.72; // center of cos track
+}
+
+function toCanvasX(mathX) {
+  return originX + mathX * scaleX;
+}
+
+function toCanvasY_sin(mathY) {
+  return originY_sin - mathY * scaleY;
+}
+
+function toCanvasY_cos(mathY) {
+  return originY_cos - mathY * scaleY;
+}
+
+// ========== DRAWING ==========
+function draw() {
+  ctx.clearRect(0, 0, graphW, graphH);
+  
+  // Background
+  ctx.fillStyle = '#a3cca3';
+  ctx.fillRect(0, 0, graphW, graphH);
+  
+  const x = currentStep * STEP;
+  
+  drawGrid();
+  drawAxes();
+  drawCurves();
+  drawDashedVertical(x);
+  drawTangentArrow(x);
+  drawFuncValueArrow(x);
+  updateLabels(x);
+}
+
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(120, 160, 120, 0.4)';
+  ctx.lineWidth = 0.5;
+  
+  const sliderAreaHeight = 70;
+  const usableH = graphH - sliderAreaHeight;
+  
+  // Vertical grid lines at π/2 intervals
+  for (let gx = Math.ceil(X_MIN_RANGE / GRID_STEP) * GRID_STEP; gx <= X_MAX_RANGE; gx += GRID_STEP) {
+    const cx = toCanvasX(gx);
+    ctx.beginPath();
+    ctx.moveTo(cx, 0);
+    ctx.lineTo(cx, usableH);
+    ctx.stroke();
+  }
+  
+  // Horizontal grid lines for sin track
+  for (let gy = -2; gy <= 2; gy += 1) {
+    const cy = toCanvasY_sin(gy);
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(graphW, cy);
+    ctx.stroke();
+  }
+  
+  // Horizontal grid lines for cos track
+  for (let gy = -2; gy <= 2; gy += 1) {
+    const cy = toCanvasY_cos(gy);
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(graphW, cy);
+    ctx.stroke();
+  }
+}
+
+function drawAxes() {
+  const sliderAreaHeight = 70;
+  const usableH = graphH - sliderAreaHeight;
+  
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1.5;
+  
+  // Sin track horizontal axis (y=0)
+  ctx.beginPath();
+  ctx.moveTo(0, originY_sin);
+  ctx.lineTo(graphW, originY_sin);
+  ctx.stroke();
+  
+  // Cos track horizontal axis (y=0)
+  ctx.beginPath();
+  ctx.moveTo(0, originY_cos);
+  ctx.lineTo(graphW, originY_cos);
+  ctx.stroke();
+  
+  // Main x-axis at bottom of graph area
+  ctx.beginPath();
+  ctx.moveTo(0, usableH);
+  ctx.lineTo(graphW, usableH);
+  ctx.stroke();
+}
+
+function drawCurves() {
+  const step = 2;
+  
+  // 2sin(x) - purple
+  ctx.beginPath();
+  ctx.strokeStyle = '#8866bb';
+  ctx.lineWidth = 6.25;
+  for (let px = 0; px < graphW; px += step) {
+    const mathX = (px - originX) / scaleX;
+    const mathY = f_sin(mathX);
+    const cy = toCanvasY_sin(mathY);
+    if (px === 0) ctx.moveTo(px, cy);
+    else ctx.lineTo(px, cy);
+  }
+  ctx.stroke();
+  
+  // 2cos(x) - blue
+  ctx.beginPath();
+  ctx.strokeStyle = '#2244aa';
+  ctx.lineWidth = 6.25;
+  for (let px = 0; px < graphW; px += step) {
+    const mathX = (px - originX) / scaleX;
+    const mathY = f_cos(mathX);
+    const cy = toCanvasY_cos(mathY);
+    if (px === 0) ctx.moveTo(px, cy);
+    else ctx.lineTo(px, cy);
+  }
+  ctx.stroke();
+}
+
+function drawDashedVertical(x) {
+  const cx = toCanvasX(x);
+  const sliderAreaHeight = 70;
+  const usableH = graphH - sliderAreaHeight;
+  
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx, 0);
+  ctx.lineTo(cx, usableH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawTangentArrow(x) {
+  // Tangent to 2sin(x) at point x
+  // slope = 2cos(x)
+  const slope = f_cos(x);
+  const yVal = f_sin(x);
+  const cx = toCanvasX(x);
+  const cy = toCanvasY_sin(yVal);
+  
+  // Draw tangent line as an arrow
+  // Length of tangent segment
+  const arrowLen = 80; // pixel length in each direction
+  
+  // Direction: slope in math coords, but canvas Y is inverted
+  // dx in canvas = dt, dy in canvas = -slope * dt * (scaleY / scaleX)
+  const effectiveSlope = -slope * scaleY / scaleX;
+  const angle = Math.atan2(effectiveSlope, 1);
+  
+  // Arrow from (cx - arrowLen*cos(angle), cy - arrowLen*sin(angle)) to (cx + arrowLen*cos(angle), cy + arrowLen*sin(angle))
+  const x1 = cx - arrowLen * Math.cos(angle);
+  const y1 = cy - arrowLen * Math.sin(angle);
+  const x2 = cx + arrowLen * Math.cos(angle);
+  const y2 = cy + arrowLen * Math.sin(angle);
+  
+  ctx.strokeStyle = '#cc0000';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  
+  // Arrowhead at (x2, y2)
+  drawArrowhead(x2, y2, angle, '#cc0000', 12);
+  
+  // Small right-angle indicator for slope visualization
+  // Base is EXACTLY 1 mathematical unit (which directly matches y grid spacing unit)
+  if (Math.abs(slope) > 0.01) {
+    const dx = 1; // 1 mathematical unit
+    const refLen = dx * scaleX; 
+    const slopePixels = slope * scaleY * dx;
+    
+    // Reference point near the arrow
+    const refX = cx;
+    const refY = cy;
+    
+    ctx.strokeStyle = 'rgba(180, 0, 0, 0.6)';
+    ctx.lineWidth = 2;
+    
+    // Horizontal line (represents "1")
+    ctx.beginPath();
+    ctx.moveTo(refX, refY);
+    ctx.lineTo(refX + refLen, refY);
+    ctx.stroke();
+    
+    // Vertical line (represents slope value)
+    ctx.beginPath();
+    ctx.moveTo(refX + refLen, refY);
+    ctx.lineTo(refX + refLen, refY - slopePixels);
+    ctx.stroke();
+    
+    // Small labels "1" and slope value
+    ctx.fillStyle = '#111';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    // Position "1" below the horizontal line
+    ctx.fillText('1', refX + refLen / 2, refY + 20);
+    
+    const slopeText = Math.abs(slope).toFixed(2);
+    ctx.textAlign = 'left';
+    ctx.fillText(slopeText, refX + refLen + 8, refY - slopePixels / 2 + 6);
+  }
+  
+  // Dot at the point
+  ctx.fillStyle = '#cc0000';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, 2 * PI);
+  ctx.fill();
+}
+
+function drawFuncValueArrow(x) {
+  // Arrow showing 2cos(x) value at point x
+  const cosVal = f_cos(x);
+  const cx = toCanvasX(x);
+  const cyZero = toCanvasY_cos(0);
+  const cyVal = toCanvasY_cos(cosVal);
+  
+  // Draw vertical arrow from axis to the curve point
+  ctx.strokeStyle = '#cc0000';
+  ctx.lineWidth = 2.5;
+  
+  if (Math.abs(cosVal) > 0.01) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cyZero);
+    ctx.lineTo(cx, cyVal);
+    ctx.stroke();
+    
+    // Arrowhead
+    const arrowAngle = cosVal > 0 ? -PI / 2 : PI / 2;
+    drawArrowhead(cx, cyVal, arrowAngle, '#cc0000', 10);
+  }
+  
+  // Dot at the point on the curve
+  ctx.fillStyle = '#cc0000';
+  ctx.beginPath();
+  ctx.arc(cx, cyVal, 4, 0, 2 * PI);
+  ctx.fill();
+}
+
+function drawArrowhead(x, y, angle, color, size) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - size * Math.cos(angle - 0.35), y - size * Math.sin(angle - 0.35));
+  ctx.lineTo(x - size * Math.cos(angle + 0.35), y - size * Math.sin(angle + 0.35));
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ========== LABELS ==========
+function updateLabels(x) {
+  const slope = f_cos(x);
+  const cosVal = f_cos(x);
+  const sinVal = f_sin(x);
+  
+  const cx = toCanvasX(x);
+  const cySin = toCanvasY_sin(sinVal);
+  const cyCos = toCanvasY_cos(cosVal);
+  
+  // Slope label (기울기)
+  const slopeStr = niceValue(slope);
+  katex.render('\\text{기울기} = ' + slopeStr, slopeLabel);
+  // Position label to avoid covering the triangle
+  // If slope is positive, the triangle goes up. If negative, it goes down.
+  const absSlopePixels = Math.abs(slope) * scaleY;
+  slopeLabel.style.left = (cx + scaleX + 50) + 'px';
+  slopeLabel.style.top = (cySin - (slope > 0 ? absSlopePixels : -absSlopePixels) / 2 - 20) + 'px';
+  
+  // Function value label (함숫값)
+  const funcStr = niceValue(cosVal);
+  katex.render('\\text{함숫값} = ' + funcStr, funcvalLabel);
+  funcvalLabel.style.left = (cx + 20) + 'px';
+  funcvalLabel.style.top = (cyCos - 20) + 'px';
+  
+  // x value label
+  const xStr = niceXLabel(currentStep);
+  katex.render('x = ' + xStr, xValueLabel);
+  xValueLabel.style.left = (cx) + 'px';
+  
+  // Graph curve labels
+  const labelSin = document.getElementById('labelSin');
+  const labelCos = document.getElementById('labelCos');
+  katex.render('2\\sin(x)', labelSin);
+  katex.render('2\\cos(x)', labelCos);
+  
+  // Position cos label
+  labelCos.style.top = (originY_cos - scaleY * 2 - 30) + 'px';
+  labelCos.style.left = '12px';
+  
+  // Info panel
+  katex.render('2\\sin(x)', document.getElementById('funcTop'));
+  katex.render('2\\cos(x)', document.getElementById('funcBottom'));
+}
+
+// ========== SLIDER ==========
+function updateSliderThumb() {
+  // Position the thumb so it aligns exactly with the dashed vertical line
+  const x = currentStep * STEP;
+  const cx = toCanvasX(x); // canvas pixel position of current x
+  // Slider track: left=40px, right=40px from graphArea edges
+  const trackLeft = 40;
+  const trackWidth = graphW - 80; // graphW - 40 - 40
+  const thumbPos = ((cx - trackLeft) / trackWidth) * 100;
+  sliderThumb.style.left = Math.max(0, Math.min(100, thumbPos)) + '%';
+}
+
+// Convert any clientX within the graph area to a snapped step
+function snapToStepFromGraphX(clientX) {
+  const rect = graphArea.getBoundingClientRect();
+  // Account for CSS transform scale
+  const currentScale = rect.width / graphArea.offsetWidth;
+  const canvasX = (clientX - rect.left) / currentScale;
+  const mathX = (canvasX - originX) / scaleX;
+  const rawStep = mathX / STEP;
+  const snapped = Math.round(rawStep);
+  return Math.max(minStep, Math.min(maxStep, snapped));
+}
+
+// --- Mouse: follow cursor anywhere in graphArea ---
+graphArea.addEventListener('mousemove', (e) => {
+  const newStep = snapToStepFromGraphX(e.clientX);
+  if (newStep !== currentStep) {
+    currentStep = newStep;
+    updateSliderThumb();
+    draw();
+  }
+});
+
+// --- Slider track click still works as before ---
+sliderTrack.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  const newStep = snapToStepFromGraphX(e.clientX);
+  if (newStep !== currentStep) {
+    currentStep = newStep;
+    updateSliderThumb();
+    draw();
+  }
+});
+
+// Touch support: follow finger in graphArea
+graphArea.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const newStep = snapToStepFromGraphX(e.touches[0].clientX);
+  if (newStep !== currentStep) {
+    currentStep = newStep;
+    updateSliderThumb();
+    draw();
+  }
+}, { passive: false });
+
+graphArea.addEventListener('touchstart', (e) => {
+  const newStep = snapToStepFromGraphX(e.touches[0].clientX);
+  if (newStep !== currentStep) {
+    currentStep = newStep;
+    updateSliderThumb();
+    draw();
+  }
+}, { passive: true });
+
+// Keyboard: left/right arrows
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') {
+    currentStep = Math.max(minStep, currentStep - 1);
+    updateSliderThumb();
+    draw();
+  } else if (e.key === 'ArrowRight') {
+    currentStep = Math.min(maxStep, currentStep + 1);
+    updateSliderThumb();
+    draw();
+  }
+});
+
+// Fullscreen
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+// ========== RESPONSIVE SCALING ==========
+const DESIGN_W = 1600;
+const DESIGN_H = 900;
+const scaleWrapper = document.getElementById('scaleWrapper');
+
+function scaleToFit() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const scale = Math.min(vw / DESIGN_W, vh / DESIGN_H);
+  scaleWrapper.style.transform = `scale(${scale})`;
+}
+
+// ========== INIT ==========
+function init() {
+  scaleToFit();
+  updateDimensions();
+  updateSliderThumb();
+  draw();
+}
+
+window.addEventListener('resize', () => {
+  scaleToFit();
+  updateDimensions();
+  updateSliderThumb();
+  draw();
+});
+
+init();
+</script>
+</body>
+</html>
